@@ -1,93 +1,74 @@
 #!/usr/bin/python3
 """
-NQueens Solver
+Module: 0-nqueens.py
 """
 import sys
 
 
-def is_valid_position(board, row, col):
-    """Checks if position is valid
-    """
-    b_size = len(board)
-    if sum(board[row]) or sum([board[i][col] for i in range(b_size)]) != 0:
+def is_valid(board, row, col):
+    """Checks if the position of queen is valid"""
+    # Check this row on left side
+    if 1 in board[row]:
         return False
 
-    for i, j in [(1, 1), (-1, -1), (1, -1), (-1, 1)]:
-        r, c = row, col
-        while 0 <= r + i < b_size and 0 <= c + j < b_size:
-            r, c = r + i, c + j
-            if board[r][c]:
-                return False
+    upper_diag = zip(range(row, -1, -1),
+                     range(col, -1, -1))
+    for i, j in upper_diag:
+        if board[i][j] == 1:
+            return False
+
+    lower_diag = zip(range(row, len(board), 1),
+                     range(col, -1, -1))
+    for i, j in lower_diag:
+        if board[i][j] == 1:
+            return False
+
     return True
 
 
-def place_next_queen(board, row):
-    """Places a queen on the board at a valid position if not return False
-    """
-    st, end = 0, len(board)
-    if sum(board[row]) == 1:
-        st = board[row].index(1) + 1
-        board[row] = [0 for col in range(end)]
-
-    for col in range(st, end):
-        if is_valid_position(board, row, col):
-            board[row][col] = 1
-            return True
+def nqueens_helper(board, col):
+    """Helper method"""
+    if col >= len(board):
+        print_board(board, len(board))
+    for i in range(len(board)):
+        if is_valid(board, i, col):
+            board[i][col] = 1
+            result = nqueens_helper(board, col + 1)
+            if result:
+                return True
+            board[i][col] = 0
     return False
 
 
-def solve_nqueens(board, solutions=[]):
-    """Solves the nqueens problem
+def print_board(board, n):
+    """Prints the position of the queen on board"""
+    b = []
 
-    Args:
-        n (int): size of board
-    """
-    n = len(board)
-    row = 0
-    while row < n:
-        if place_next_queen(board, row):
-            row += 1
-        else:
-            if row - 1 < 0:
-                break
-            row -= 1
-        if row == n:
-            solutions.append([[row, board[row].index(1)] for row in range(n)])
-            row -= 1
-
-    if row == 0:
-        return
-
-    solutions.append([[row, board[row].index(1)] for row in range(n)])
-    idx = board[0].index(1)
-    if idx > -1:
-        board = [[0 for _ in range(n)] for row in range(n)]
-        board[0][idx] = 1
-        solve_nqueens(board, solutions)
+    for i in range(n):
+        for j in range(n):
+            if board[i][j] == 1:
+                b.append([i, j])
+    print(b)
 
 
-def run_solver(n):
-    """Runs the solver
-    """
-    board = [[0 for col in range(n)] for row in range(n)]
-    solutions = []
-    solve_nqueens(board, solutions)
-    for row in solutions:
-        print(row)
+def nqueens(n):
+    """Intrance function for the puzzle"""
+    board = []
+    for i in range(n):
+        row = [0] * n
+        board.append(row)
+    nqueens_helper(board, 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
-        sys.exit(1)
-
-    try:
-        n = int(sys.argv[1])
-        if n < 4:
-            print('N must be at least 4')
-            sys.exit(1)
-        run_solver(n)
-
-    except ValueError:
-        print('N must be a number')
-        sys.exit(1)
+        exit(1)
+    queens = sys.argv[1]
+    if not queens.isnumeric():
+        print("N must be a number")
+        exit(1)
+    elif int(queens) < 4:
+        print("N must be at least 4")
+        exit(1)
+    nqueens(int(queens))

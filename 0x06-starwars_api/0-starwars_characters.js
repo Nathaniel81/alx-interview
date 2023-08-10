@@ -1,42 +1,36 @@
+#!/usr/bin/node
+const argv = process.argv;
+const urlFilm = 'https://swapi-api.hbtn.io/api/films/';
+const urlMovie = `${urlFilm}${argv[2]}/`;
+
 const request = require('request');
 
-const movieId = process.argv[2];
+request(urlMovie, function (error, response, body) {
+  if (error == null) {
+    const fbody = JSON.parse(body);
+    const characters = fbody.characters;
 
-if (!movieId) {
-  console.log('Usage: node 0-starwars_characters.js <movie_id>');
-  process.exit(1);
-}
-
-const movieUrl = `https://swapi.dev/api/films/${movieId}/`;
-
-request.get(movieUrl, (error, response, body) => {
-  if (error) {
-    console.error('Error fetching movie data:', error);
-    return;
+    if (characters && characters.length > 0) {
+      const limit = characters.length;
+      CharRequest(0, characters[0], characters, limit);
+    }
+  } else {
+    console.log(error);
   }
-
-  if (response.statusCode !== 200) {
-    console.error('Failed to fetch movie data. Status code:', response.statusCode);
-    return;
-  }
-
-  const movieData = JSON.parse(body);
-  const characterUrls = movieData.characters;
-
-  characterUrls.forEach(characterUrl => {
-    request.get(characterUrl, (charError, charResponse, charBody) => {
-      if (charError) {
-        console.error('Error fetching character data:', charError);
-        return;
-      }
-
-      if (charResponse.statusCode !== 200) {
-        console.error('Failed to fetch character data. Status code:', charResponse.statusCode);
-        return;
-      }
-
-      const characterData = JSON.parse(charBody);
-      console.log(characterData.name);
-    });
-  });
 });
+
+function CharRequest (idx, url, characters, limit) {
+  if (idx === limit) {
+    return;
+  }
+  request(url, function (error, response, body) {
+    if (!error) {
+      const rbody = JSON.parse(body);
+      console.log(rbody.name);
+      idx++;
+      CharRequest(idx, characters[idx], characters, limit);
+    } else {
+      console.error('error:', error);
+    }
+  });
+}
